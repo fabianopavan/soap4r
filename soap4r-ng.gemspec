@@ -21,5 +21,5 @@ Gem::Specification.new do |s|
   s.require_path = 'lib'
 
   s.files = `git ls-files lib bin`.split("\n")
-  s.executables = [ "wsdl2ruby.rb", "xsd2ruby.rb" ]
+  s.executables = [ "wsdl2ruby_rails.rb", "xsd2ruby.rb" ]
 end

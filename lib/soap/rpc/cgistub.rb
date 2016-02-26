@@ -57,7 +57,7 @@ class CGIStub < Logger::Application
 
     def meta_vars
       {
-        'HTTP_SOAPACTION' => ENV['HTTP_SOAPAction']
+        'HTTP_SOAPACTION' => ENV['HTTP_SOAPACTION']
       }
     end
 
@@ -88,7 +88,7 @@ class CGIStub < Logger::Application
 
     def meta_vars
       {
-        'HTTP_SOAPACTION' => @request.env['HTTP_SOAPAction']
+        'HTTP_SOAPACTION' => @request.env['HTTP_SOAPACTION']
       }
     end
 

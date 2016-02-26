@@ -21,7 +21,7 @@ class LiteralMappingRegistryCreator
   def initialize(definitions, name_creator, modulepath, defined_const)
     @definitions = definitions
     @name_creator = name_creator
-    @modulepath = modulepath
+    @modulepath = nil #modulepath #tolgo il modulo per condividere le classi dei modelli tra client e server soap
     @elements = definitions.collect_elements
     @elements.uniq!
     @attributes = definitions.collect_attributes

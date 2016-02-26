@@ -24,6 +24,7 @@ class ClassDef < ModuleDef
     @baseclass = baseclass
     @classvar = []
     @attrdef = []
+    @included_files = []
   end
 
   def def_classvar(var, value)
@@ -40,6 +41,12 @@ class ClassDef < ModuleDef
     end
     @attrdef << [attrname, writable, varname]
   end
+
+  def include_files_in_class(files)
+    @included_files << files
+  end
+
+
 
   def dump
     buf = ""
@@ -71,6 +78,11 @@ class ClassDef < ModuleDef
       spacer = true
       buf << dump_code
     end
+    unless @included_files.empty?
+      buf << dump_emptyline if spacer
+      spacer = true
+      buf << dump_include_file
+    end
     unless @attrdef.empty?
       buf << dump_emptyline if spacer
       spacer = true
@@ -95,6 +107,15 @@ private
     else
       format("class #{name.last}")
     end
+  end
+
+  def dump_include_file
+    str = ""
+    @included_files.each{ |file_to_include|
+      str << "\n" unless str.empty?
+      str << format("include "+file_to_include)
+    }
+    str
   end
 
   def dump_class_def_end
