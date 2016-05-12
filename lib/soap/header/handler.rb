@@ -13,7 +13,6 @@ require 'soap/element'
 module SOAP
 module Header
 
-
 class Handler
   attr_reader :elename
   attr_accessor :mustunderstand
@@ -43,6 +42,9 @@ class Handler
     if item.nil?
       nil
     elsif item.is_a?(::SOAP::SOAPHeaderItem)
+      item.elename = @elename
+      item
+    elsif item.is_a?(::SOAP::SOAPElement)
       item.elename = @elename
       item
     else

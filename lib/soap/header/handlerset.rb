@@ -30,6 +30,13 @@ class HandlerSet
   end
   alias << add
 
+  def get_handler(handler_class)
+    handler_trovato = @store.find { |handler_salvato|
+      handler_salvato.elename == handler_class::QName
+    }
+    handler_trovato
+  end
+
   def delete(handler)
     @store.delete(handler)
   end

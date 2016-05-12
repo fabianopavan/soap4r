@@ -213,10 +213,11 @@ module RegistrySupport
   end
 
   def find_node_definition(node)
-    schema_definition_from_type(node.type) ||
-      schema_definition_from_elename(node.elename) ||
-      find_schema_definition(node.elename.name) ||
-      find_schema_definition(node.type.name)
+    name = schema_definition_from_type(node.type)
+    name ||= schema_definition_from_elename(node.elename)
+    name = find_schema_definition(node.elename.name) if !node.elename.blank? && name.blank?
+    name = find_schema_definition(node.type.name) if !node.type.blank? && name.blank?
+    name
   end
 
   def find_schema_definition(name)

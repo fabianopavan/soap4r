@@ -6,7 +6,6 @@
 # redistribute it and/or modify it under the same terms of Ruby's license;
 # either the dual license version in 2003, or any later version.
 
-
 require 'soap/soap'
 require 'soap/processor'
 require 'soap/mapping'
@@ -156,14 +155,17 @@ class Router
     end
     assign_operation(soapaction, first_input_part_qname(param_def), op)
   end
-
+require 'soap/mapping/mapping'
   def route(conn_data)
     # we cannot set request_default_encodingsyle before parsing the content.
+    
     env = unmarshal(conn_data)
     if env.nil?
       raise ArgumentError.new("illegal SOAP marshal format")
     end
-    op = lookup_operation(conn_data.soapaction, env.body)
+    op = lookup_operation(conn_data.soapaction, env)
+    #add_request_headerhandler(ServerAuthHeaderHandler)
+
     headerhandler = @headerhandler.dup
     @headerhandlerfactory.each do |f|
       headerhandler.add(f.create)
@@ -171,8 +173,12 @@ class Router
     soap_response = default_encodingstyle = nil
     begin
       receive_headers(headerhandler, env.header)
-      soap_response =
-        op.call(env.body, @mapping_registry, @literal_mapping_registry,
+      header = call_headers(headerhandler)
+      #ricavo l'handler configurato
+      my_handler = headerhandler.get_handler(@headerhandlerfactory[0])
+      #chiamo il metodo che mi ritorna l'oggetto
+      header_soap = my_handler.on_mapping_outbound
+      soap_response = op.call(env, header_soap, @mapping_registry, @literal_mapping_registry,
           create_mapping_opt)
       conn_data.is_fault = true if soap_response.is_a?(SOAPFault)
       default_encodingstyle = op.response_default_encodingstyle
@@ -185,7 +191,7 @@ class Router
       conn_data.is_fault = true
       default_encodingstyle = nil
     end
-    header = call_headers(headerhandler)
+    
     if op.response_use.nil?
       conn_data.send_string = ''
       conn_data.is_nocontent = true
@@ -448,15 +454,18 @@ private
       (@response_use == :encoded) ? EncodingNamespace : LiteralNamespace
     end
 
-    def call(body, mapping_registry, literal_mapping_registry, opt)
+    def call(env, soap_header, mapping_registry, literal_mapping_registry, opt)
       if @request_style == :rpc
-        values = request_rpc(body, mapping_registry, literal_mapping_registry,
+        values = request_rpc(env.body, mapping_registry, literal_mapping_registry,
           opt)
       else
-        values = request_document(body, mapping_registry,
+        values = request_document(env.body, mapping_registry,
           literal_mapping_registry, opt)
       end
-      result = receiver.method(@name.intern).call(*values)
+      values << soap_header unless soap_header.blank?
+      obj = receiver.method(@name.intern)
+      #receiver.paaAttivaRPT(*values)
+      result = obj.call(*values)
       return result if result.is_a?(SOAPFault)
       if @response_style == :rpc
         response_rpc(result, mapping_registry, literal_mapping_registry, opt)
@@ -517,7 +526,7 @@ private
         Mapping.soap2obj(value, mapping_registry, nil, opt)
       }
     end
-
+    
     def request_doc_lit(body, mapping_registry, opt)
       body.collect { |key, value|
         Mapping.soap2obj(value, mapping_registry, nil, opt)
